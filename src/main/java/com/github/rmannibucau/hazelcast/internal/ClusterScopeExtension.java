@@ -3,7 +3,6 @@ package com.github.rmannibucau.hazelcast.internal;
 import com.hazelcast.config.UrlXmlConfig;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.ILock;
 import com.hazelcast.core.IMap;
 import org.apache.deltaspike.core.api.config.ConfigResolver;
 import org.apache.deltaspike.core.util.context.ContextualInstanceInfo;
@@ -40,15 +39,6 @@ public class ClusterScopeExtension implements Extension {
             throw new IllegalStateException(e);
         }
         return instance.getMap(mapName);
-    }
-
-    public ILock getHazecastLock(final String name) throws IOException {
-        try {
-            ensureInstance();
-        } catch (final IOException e) {
-            throw new IllegalStateException(e);
-        }
-        return instance.getLock(name);
     }
 
     private void ensureInstance() throws IOException {

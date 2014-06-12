@@ -1,7 +1,6 @@
 package com.github.rmannibucau.hazelcast.internal;
 
 import com.github.rmannibucau.hazelcast.api.ClusterScoped;
-import com.hazelcast.core.ILock;
 import com.hazelcast.core.IMap;
 import org.apache.commons.proxy2.Interceptor;
 import org.apache.commons.proxy2.Invocation;
@@ -13,7 +12,6 @@ import javax.enterprise.context.spi.Context;
 import javax.enterprise.context.spi.Contextual;
 import javax.enterprise.context.spi.CreationalContext;
 import javax.enterprise.inject.spi.PassivationCapable;
-import java.io.IOException;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
@@ -57,25 +55,13 @@ public class ClusterContext implements Context {
             }
         }
 
-        final ILock lock;
-        try {
-            lock = hz().getHazecastLock(beanKey);
-        } catch (IOException e) {
-            throw new IllegalStateException(e);
+        T instance = instanceInfo.getContextualInstance();
+        if (instance == null) {
+            instance = bean.create(creationalContext);
+            instanceInfo.setContextualInstance(instance);
+            instanceInfo.setCreationalContext(creationalContext);
         }
-
-        lock.lock();
-        try {
-            T instance = instanceInfo.getContextualInstance();
-            if (instance == null) {
-                instance = bean.create(creationalContext);
-                instanceInfo.setContextualInstance(instance);
-                instanceInfo.setCreationalContext(creationalContext);
-            }
-            return proxy(instance, beanKey, instanceInfo);
-        } finally {
-            lock.unlock();
-        }
+        return proxy(instance, beanKey, instanceInfo);
     }
 
     private <T> T proxy(final T instance, final String beanKey, final ContextualInstanceInfo<T> instanceInfo) {
